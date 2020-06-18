@@ -1,8 +1,11 @@
 package com.example.testbarang;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.content.Context;
 
@@ -10,14 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class AdapterLihatBarang extends
-        RecyclerView.Adapter<AdapterLihatBarang.ViewHolder> {
+public class AdapterLihatBarang extends RecyclerView.Adapter<AdapterLihatBarang.ViewHolder> {
     private ArrayList<Barang> daftarBarang;
     private Context context;
+    FirebaseDataListener listener;
 
     public AdapterLihatBarang(ArrayList<Barang> barangs, Context ctx) {
         daftarBarang = barangs;
         context = ctx;
+        listener = (LihatBarang) ctx;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -26,7 +30,7 @@ public class AdapterLihatBarang extends
 
         ViewHolder(View v) {
             super(v);
-            tvTitle = (TextView) v.findViewById(R.id.tv_namabarang);
+            tvTitle = v.findViewById(R.id.tv_namabarang);
         }
     }
 
@@ -48,6 +52,33 @@ public class AdapterLihatBarang extends
         holder.tvTitle.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
+                final Dialog dialog = new Dialog(context, R.style.ThemeOverlay_AppCompat_Dialog_Alert);
+                dialog.setContentView(R.layout.dialog_view);
+                dialog.setTitle("Action");
+                dialog.show();
+
+                Button editButton = dialog.findViewById(R.id.bt_edit_data);
+                Button delButton = dialog.findViewById(R.id.bt_delete_data);
+
+                editButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                                context.startActivity(TambahData.getActIntent((Activity) context).putExtra("data", daftarBarang.get(position)));
+                            }
+                        }
+                );
+
+                delButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                                listener.onDeleteData(daftarBarang.get(position), position);
+                            }
+                        }
+                );
                 return true;
             }
         });
@@ -58,5 +89,9 @@ public class AdapterLihatBarang extends
     public int getItemCount() {
 
         return daftarBarang.size();
+    }
+
+    public interface FirebaseDataListener {
+        void onDeleteData(Barang barang, int position);
     }
 }

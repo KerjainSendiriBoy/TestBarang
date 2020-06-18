@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -17,7 +19,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class LihatBarang extends AppCompatActivity {
+public class LihatBarang extends AppCompatActivity implements AdapterLihatBarang.FirebaseDataListener {
 
     private DatabaseReference database;
     private RecyclerView rvView;
@@ -30,7 +32,7 @@ public class LihatBarang extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lihat_barang);
 
-        rvView = (RecyclerView) findViewById(R.id.rv_main);
+        rvView = findViewById(R.id.rv_main);
         rvView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         rvView.setLayoutManager(layoutManager);
@@ -43,7 +45,7 @@ public class LihatBarang extends AppCompatActivity {
                 daftarBarang = new ArrayList<>();
                 for (DataSnapshot noteDataSnapshot : dataSnapshot.getChildren()) {
                     Barang barang = noteDataSnapshot.getValue(Barang.class);
-                    barang.setKode(noteDataSnapshot.getKey());
+                    barang.setKey(noteDataSnapshot.getKey());
                     daftarBarang.add(barang);
                 }
                 adapter = new AdapterLihatBarang(daftarBarang, LihatBarang.this);
@@ -59,5 +61,18 @@ public class LihatBarang extends AppCompatActivity {
 
     public static Intent getActIntent(Activity activity) {
         return new Intent(activity, LihatBarang.class);
+    }
+
+    @Override
+    public void onDeleteData(Barang barang, int position) {
+        if (database != null) {
+            database.child("Barang").child(barang.getKey()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Toast.makeText(LihatBarang.this, "success delete", Toast.LENGTH_LONG).show();
+                }
+            });
+
+        }
     }
 }
